@@ -1,41 +1,21 @@
 #include "json_reader.h"
 
-#include <chrono>
-
 using namespace std::literals;
 
 namespace transport_catalogue {
     namespace detail {
         void ProcessQueries(std::istream& input, std::ostream& output, TransportCatalogue& catalogue, renderer::MapRenderer& renderer) {
-            const auto start = std::chrono::steady_clock::now();
-
+            
             json::Document doc = json::Load(input);
             auto& queryset = doc.GetRoot().AsMap();
-            const auto durationLoad = std::chrono::steady_clock::now();
-            std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(durationLoad - start).count() << " ms durationLoad"sv << std::endl;
-
+           
             FillCatalogue(queryset, catalogue);
-
-            const auto durationFillCatalogue = std::chrono::steady_clock::now();
-            std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(durationFillCatalogue - durationLoad).count() << " ms durationFillCatalogue"sv << std::endl;
-
+            
             FillMapRenderer(queryset, renderer);
-            const auto FillMapRenderer = std::chrono::steady_clock::now();
-            std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(FillMapRenderer - durationFillCatalogue).count() << " ms FillMapRenderer"sv << std::endl;
-
-
+            
             RequestHandler handler = RequestHandler(catalogue, renderer);
-            const auto RequestHandler = std::chrono::steady_clock::now();
-            std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(RequestHandler - FillMapRenderer).count() << " ms RequestHandler"sv << std::endl;
-
-
-            StatPrinter(output, queryset, handler);
-            const auto StatPrinter = std::chrono::steady_clock::now();
-            std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(StatPrinter-RequestHandler).count() << " ms StatPrinter"sv << std::endl;
-
-
-            const auto duration = std::chrono::steady_clock::now() - start;
-            std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << " ms All"sv << std::endl;
+            
+            StatPrinter(output, queryset, handler);   
         }
 
         void FillCatalogue(const json::Dict& queryset, TransportCatalogue& catalogue) {
@@ -119,7 +99,6 @@ namespace transport_catalogue {
         }
 
         void InputStops(const json::Dict& queryset, TransportCatalogue& catalogue) {
-            //     const auto start = std::chrono::steady_clock::now();
             for (const auto& query : queryset.at("base_requests"s).AsArray()) {
                 auto map = query.AsMap();
                 if (map.at("type"s).AsString() == "Stop") {
@@ -129,8 +108,6 @@ namespace transport_catalogue {
                     catalogue.TransportCatalogue::AddStop(geo::Coordinates{ lat, lng }, name);
                 }
             }
-            //   const auto load = std::chrono::steady_clock::now();
-            //   std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(load - start).count() << "ms InputStops"s << std::endl;
             for (const auto& query : queryset.at("base_requests"s).AsArray()) {
                 auto map = query.AsMap();
                 if (map.at("type"s).AsString() == "Stop") {
@@ -144,8 +121,6 @@ namespace transport_catalogue {
                     }
                 }
             }
-            //   const auto getroot = std::chrono::steady_clock::now();
-            //   std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(getroot - load).count() << "ms InputDistances"s << std::endl;
         }
 
         void InputBuses(const json::Dict& queryset, TransportCatalogue& catalogue) {
@@ -196,7 +171,6 @@ namespace transport_catalogue {
                 route_length += catalogue.ComputeRouteDistance(stops);
                 route_curvature = route_length / route_geo_length / 2.0;
             }
-            //       std::cout << route_curvature << '\t' << request_id << '\t' << route_length << '\t' << stops_on_route << '\t' << unique_stops << std::endl;
             return json::Dict{ {"curvature"s, json::Node(route_curvature)}, {"request_id"s, json::Node(request_id)}, {"route_length"s, json::Node(route_length)}, {"stop_count"s, json::Node(stops_on_route)}, {"unique_stop_count"s, json::Node(unique_stops)} };
         }
 
@@ -389,7 +363,7 @@ namespace transport_catalogue {
 
         void StatPrinter(std::ostream& out, const json::Dict& queryset, const RequestHandler& handler)
         {
-            const auto start = std::chrono::steady_clock::now();
+            
             json::Array stat_printer;
 
             for (const auto& request : queryset.at("stat_requests"s).AsArray()) {
@@ -405,22 +379,12 @@ namespace transport_catalogue {
                     stat_printer.push_back(GetStop(request_id, name, handler.RequestHandler::GetCatalogue()));
                 }
                 else if (type == "Map"s) {
-                    const auto start = std::chrono::steady_clock::now();
-                    stat_printer.push_back(GetMap(request_id, handler, queryset));
-                    const auto loopMap = std::chrono::steady_clock::now();
-                    std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(loopMap - start).count() << " ms loopMap"sv << std::endl;
-
+                    
+                    stat_printer.push_back(GetMap(request_id, handler, queryset));  
                 }
             }
-
-            const auto loop = std::chrono::steady_clock::now();
-            std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(loop - start).count() << " ms loop"sv << std::endl;
-
+            
             json::Print(json::Document(stat_printer), out);
-
-            const auto durationPrint = std::chrono::steady_clock::now();
-            std::cout << std::endl << std::chrono::duration_cast<std::chrono::milliseconds>(durationPrint - loop).count() << " ms durationPrint"sv << std::endl;
-
         }
     }
 }

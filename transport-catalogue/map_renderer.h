@@ -73,104 +73,54 @@ namespace renderer {
 
     class MapRenderer {
     public:
-        void SetBusLabelFontSize(int bus_label_font_size) {
-            bus_label_font_size_ = bus_label_font_size;
-        }
+        void SetBusLabelFontSize(int bus_label_font_size); 
 
-        void SetStopLabelFontSize(int stop_label_font_size) {
-            stop_label_font_size_ = stop_label_font_size;
-        }
+        void SetStopLabelFontSize(int stop_label_font_size);
 
-        void SetWidth(double width) {
-            width_ = width;
-        }
+        void SetWidth(double width);
 
-        void SetHeight(double height) {
-            height_ = height;
-        }
+        void SetHeight(double height);
 
-        void SetPadding(double padding) {
-            padding_ = padding;
-        }
+        void SetPadding(double padding);
 
-        void SetLineWidth(double line_width) {
-            line_width_ = line_width;
-        }
+        void SetLineWidth(double line_width);
 
-        void SetStopRadius(double stop_radius) {
-            stop_radius_ = stop_radius;
-        }
+        void SetStopRadius(double stop_radius);
 
-        void SetUnderlayerWidth(double underlayer_width) {
-            underlayer_width_ = underlayer_width;
-        }
+        void SetUnderlayerWidth(double underlayer_width);
 
-        void SetStopLabelOffset(double dx, double dy) {
-            stop_label_offset_.first = dx;
-            stop_label_offset_.second = dy;
-        }
+        void SetStopLabelOffset(double dx, double dy);
 
-        void SetBusLabelOffset(double dx, double dy) {
-            bus_label_offset_.first = dx;
-            bus_label_offset_.second = dy;
-        }
+        void SetBusLabelOffset(double dx, double dy);
 
-        void SetUnderlayerColor(svg::Color underlayer_color) {
-            underlayer_color_ = underlayer_color;
-        }
+        void SetUnderlayerColor(svg::Color underlayer_color);
 
-        void SetColorPalette(const std::vector<svg::Color>& color_palette) {
-            color_palette_ = color_palette;
-        }
+        void SetColorPalette(const std::vector<svg::Color>& color_palette);
 
 
-        int GetBusLabelFontSize() const {
-            return bus_label_font_size_;
-        }
+        int GetBusLabelFontSize() const;
 
-        int GetStopLabelFontSize() const {
-            return stop_label_font_size_;
-        }
+        int GetStopLabelFontSize() const;
 
-        double GetWidth() const {
-            return width_;
-        }
+        double GetWidth() const;
 
-        double GetHeight() const {
-            return height_;
-        }
+        double GetHeight() const;
 
-        double GetPadding() const {
-            return padding_;
-        }
+        double GetPadding() const;
 
-        double GetLineWidth() const {
-            return line_width_;
-        }
+        double GetLineWidth() const;
 
-        double GetStopRadius() const {
-            return stop_radius_;
-        }
+        double GetStopRadius() const;
 
-        double GetUnderlayerWidth() const {
-            return underlayer_width_;
-        }
+        double GetUnderlayerWidth() const;
 
-        const std::pair<double, double>& GetStopLabelOffset() const {
-            return stop_label_offset_;
-        }
+        const std::pair<double, double>& GetStopLabelOffset() const;
 
-        const std::pair<double, double>& GetBusLabelOffset() const {
-            return bus_label_offset_;
-        }
+        const std::pair<double, double>& GetBusLabelOffset() const;
 
-        const svg::Color& GetUnderlayerColor() const {
-            return underlayer_color_;
-        }
+        const svg::Color& GetUnderlayerColor() const;
 
-        const std::vector<svg::Color>& GetColorPalette() const {
-            return color_palette_;
-        }
+        const std::vector<svg::Color>& GetColorPalette() const;
 
     private: 
         int bus_label_font_size_ = 0;
@@ -185,9 +135,5 @@ namespace renderer {
         std::pair<double, double> bus_label_offset_{ 0.0, 0.0 };
         svg::Color underlayer_color_ = "none";
         std::vector<svg::Color> color_palette_;
-
     };
-
-
-
 }
