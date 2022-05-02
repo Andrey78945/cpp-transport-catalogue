@@ -5,17 +5,17 @@ using namespace std::literals;
 namespace transport_catalogue {
     namespace detail {
         void ProcessQueries(std::istream& input, std::ostream& output, TransportCatalogue& catalogue, renderer::MapRenderer& renderer) {
-            
+
             json::Document doc = json::Load(input);
-            auto& queryset = doc.GetRoot().AsMap();
-           
+            auto& queryset = doc.GetRoot().AsDict();
+
             FillCatalogue(queryset, catalogue);
-            
+
             FillMapRenderer(queryset, renderer);
-            
+
             RequestHandler handler = RequestHandler(catalogue, renderer);
-            
-            StatPrinter(output, queryset, handler);   
+
+            StatPrinter(output, queryset, handler);
         }
 
         void FillCatalogue(const json::Dict& queryset, TransportCatalogue& catalogue) {
@@ -48,11 +48,11 @@ namespace transport_catalogue {
             return "none"s;
         }
 
-        void FillMapRenderer(const json::Dict& queryset, renderer::MapRenderer& renderer) {            
+        void FillMapRenderer(const json::Dict& queryset, renderer::MapRenderer& renderer) {
             if (auto it = queryset.find("render_settings"s); it == queryset.end()) {
                 return;
             }
-            for (const auto& [key, value] : queryset.at("render_settings"s).AsMap()) {
+            for (const auto& [key, value] : queryset.at("render_settings"s).AsDict()) {
                 if (key == "width"s) {
                     renderer.SetWidth(value.AsDouble());
                 }
@@ -100,7 +100,7 @@ namespace transport_catalogue {
 
         void InputStops(const json::Dict& queryset, TransportCatalogue& catalogue) {
             for (const auto& query : queryset.at("base_requests"s).AsArray()) {
-                auto map = query.AsMap();
+                auto map = query.AsDict();
                 if (map.at("type"s).AsString() == "Stop") {
                     double lat = map.at("latitude"s).AsDouble();
                     double lng = map.at("longitude"s).AsDouble();
@@ -109,10 +109,10 @@ namespace transport_catalogue {
                 }
             }
             for (const auto& query : queryset.at("base_requests"s).AsArray()) {
-                auto map = query.AsMap();
+                auto map = query.AsDict();
                 if (map.at("type"s).AsString() == "Stop") {
                     std::string name = map.at("name"s).AsString();
-                    auto distances = map.at("road_distances"s).AsMap();
+                    auto distances = map.at("road_distances"s).AsDict();
                     if (!distances.empty()) {
                         for (const auto& [to, distance] : distances) {
                             domain::Stop* from = catalogue.TransportCatalogue::FindStop(name);
@@ -125,7 +125,7 @@ namespace transport_catalogue {
 
         void InputBuses(const json::Dict& queryset, TransportCatalogue& catalogue) {
             for (const auto& query : queryset.at("base_requests"s).AsArray()) {
-                auto map = query.AsMap();
+                auto map = query.AsDict();
                 if (map.at("type"s).AsString() == "Bus") {
                     bool is_roundtrip = map.at("is_roundtrip"s).AsBool();
                     std::vector<domain::Stop*> stops;
@@ -147,7 +147,13 @@ namespace transport_catalogue {
         }
 
         json::Dict GetNotFoundInfo(int request_id) {
-            return json::Dict{ {"request_id"s, json::Node(request_id)}, {"error_message"s, json::Node("not found"s)} };
+            return json::Builder{}
+                            .StartDict()
+                                .Key("request_id"s).Value(request_id)
+                                .Key("error_message"s).Value("not found"s)
+                            .EndDict()
+                        .Build()
+                    .AsDict();
         }
 
         json::Dict GetBus(int request_id, const std::string& bus, const TransportCatalogue& catalogue) {
@@ -171,7 +177,19 @@ namespace transport_catalogue {
                 route_length += catalogue.ComputeRouteDistance(stops);
                 route_curvature = route_length / route_geo_length / 2.0;
             }
-            return json::Dict{ {"curvature"s, json::Node(route_curvature)}, {"request_id"s, json::Node(request_id)}, {"route_length"s, json::Node(route_length)}, {"stop_count"s, json::Node(stops_on_route)}, {"unique_stop_count"s, json::Node(unique_stops)} };
+            return json::Builder{}
+                            .StartDict()
+                                .Key("curvature"s).Value(route_curvature)
+                                .Key("request_id"s).Value(request_id)
+                                .Key("route_length"s).Value(route_length)
+                                .Key("stop_count"s).Value(stops_on_route)
+                                .Key("unique_stop_count"s).Value(unique_stops)
+                            .EndDict()
+                        .Build()
+                    .AsDict();
+           /* return json::Dict{ {"curvature"s, json::Node(route_curvature)}, {"request_id"s, json::Node(request_id)}, 
+                {"route_length"s, json::Node(route_length)}, {"stop_count"s, json::Node(stops_on_route)}, 
+                {"unique_stop_count"s, json::Node(unique_stops)} };*/
         }
 
         json::Dict GetStop(int request_id, const std::string& stop, const TransportCatalogue& catalogue) {
@@ -187,8 +205,15 @@ namespace transport_catalogue {
             json::Array buses_on_stop;
             for (const auto& bus : routes) {
                 buses_on_stop.push_back(json::Node(bus));
-            } 
-            return json::Dict{ {"buses"s, buses_on_stop}, {"request_id"s, json::Node(request_id)} }; ;
+            }
+         //   return json::Dict{ {"buses"s, buses_on_stop}, {"request_id"s, json::Node(request_id)} }; 
+            return json::Builder{}
+                            .StartDict()
+                                .Key("buses"s).Value(buses_on_stop)
+                                .Key("request_id"s).Value(request_id)
+                            .EndDict()
+                        .Build()
+                    .AsDict();
         }
 
         std::vector<geo::Coordinates> FindStopsOnRoutes(const RequestHandler& handler) {
@@ -210,36 +235,36 @@ namespace transport_catalogue {
             size_t route_color_index = 0u;
             size_t color_palette_size = render.GetColorPalette().size();
             auto buses = (catalogue.TransportCatalogue::GetBusesSet());
-            for (const auto& bus : buses) { 
+            for (const auto& bus : buses) {
                 auto stops_in_map = catalogue.TransportCatalogue::GetStopsToBuses();
                 if (stops_in_map.find(bus) != stops_in_map.end()) {
                     auto stops = catalogue.TransportCatalogue::FindBus(bus)->stops;
-                        if (!stops.empty()) {
-                            svg::Polyline polyline;
-                            polyline.SetFillColor(svg::NoneColor)
-                                .SetStrokeWidth(render.GetLineWidth())
-                                .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
-                                .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
-                            for (const auto& stop : stops) { 
-                                polyline.AddPoint(projector((*stop).coordinates));
+                    if (!stops.empty()) {
+                        svg::Polyline polyline;
+                        polyline.SetFillColor(svg::NoneColor)
+                            .SetStrokeWidth(render.GetLineWidth())
+                            .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
+                            .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
+                        for (const auto& stop : stops) {
+                            polyline.AddPoint(projector((*stop).coordinates));
+                        }
+
+                        auto b = catalogue.TransportCatalogue::FindBus(bus);
+                        if (!(b->is_roundtrip) && stops.size() > 1u) {
+                            for (auto i = 1u; i < stops.size(); ++i) {
+                                polyline.AddPoint(projector((*(stops[stops.size() - i - 1])).coordinates));
                             }
-                            
-                            auto b = catalogue.TransportCatalogue::FindBus(bus);
-                            if (!(b->is_roundtrip) && stops.size() > 1u) {
-                                for (auto i = 1u; i < stops.size(); ++i) {
-                                    polyline.AddPoint(projector((*(stops[stops.size() - i - 1])).coordinates));
-                                }
-                            }
-                            polyline.SetStrokeColor(render.GetColorPalette()[route_color_index]);
-                            route_color_index = (route_color_index < color_palette_size - 1) ? route_color_index + 1 : 0u;
-                            result.push_back(std::move(polyline));
-                        }                        
-                }               
+                        }
+                        polyline.SetStrokeColor(render.GetColorPalette()[route_color_index]);
+                        route_color_index = (route_color_index < color_palette_size - 1) ? route_color_index + 1 : 0u;
+                        result.push_back(std::move(polyline));
+                    }
+                }
             }
             return result;
         }
 
-        std::vector<svg::Text> DrawRouteNames(const renderer::SphereProjector & projector, const RequestHandler & handler) {
+        std::vector<svg::Text> DrawRouteNames(const renderer::SphereProjector& projector, const RequestHandler& handler) {
             std::vector<svg::Text> names;
             auto catalogue = handler.RequestHandler::GetCatalogue();
             auto render = handler.RequestHandler::GetRenderer();
@@ -247,7 +272,7 @@ namespace transport_catalogue {
             size_t color_palette_size = render.GetColorPalette().size();
             for (const auto& bus : catalogue.TransportCatalogue::GetBusesSet()) {
                 auto stops = catalogue.TransportCatalogue::FindBus(bus)->stops;
-                if (!stops.empty()) { 
+                if (!stops.empty()) {
                     svg::Text base;
                     base.SetPosition(projector((*(stops[0])).coordinates))
                         .SetOffset(svg::Point(render.GetBusLabelOffset()))
@@ -262,29 +287,29 @@ namespace transport_catalogue {
                         .SetStrokeColor(render.GetUnderlayerColor())
                         .SetStrokeWidth(render.GetUnderlayerWidth())
                         .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
-                        .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);                    
+                        .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
                     names.push_back(underlay);
                     names.push_back(sign);
-                     
+
                     if (!(catalogue.TransportCatalogue::FindBus(bus)->is_roundtrip) && stops.size() > 1u && stops[0]->name != stops[stops.size() - 1]->name) {
                         underlay.SetPosition(projector((*(stops[stops.size() - 1])).coordinates));
                         sign.SetPosition(projector((*(stops[stops.size() - 1])).coordinates));
                         names.push_back(std::move(underlay));
                         names.push_back(std::move(sign));
-                    }                    
-                    route_color_index = (route_color_index < color_palette_size - 1) ? route_color_index + 1 : 0u;                    
+                    }
+                    route_color_index = (route_color_index < color_palette_size - 1) ? route_color_index + 1 : 0u;
                 }
             }
             return names;
         }
 
-        std::vector<svg::Circle> DrawStopSymbols(const renderer::SphereProjector & projector, const RequestHandler & handler) {
+        std::vector<svg::Circle> DrawStopSymbols(const renderer::SphereProjector& projector, const RequestHandler& handler) {
             std::vector<svg::Circle> symbols;
             auto catalogue = handler.RequestHandler::GetCatalogue();
             auto render = handler.RequestHandler::GetRenderer();
             auto stops = catalogue.TransportCatalogue::GetStopsSet();
-            
-            for (const auto& stop : stops) {                
+
+            for (const auto& stop : stops) {
                 auto buses = catalogue.TransportCatalogue::GetBusesToStops();
                 if (buses.find(stop) != buses.end()) {
                     svg::Circle circle;
@@ -299,17 +324,17 @@ namespace transport_catalogue {
 
         std::vector<svg::Text> DrawStopNames(const renderer::SphereProjector& projector, const RequestHandler& handler) {
             std::vector<svg::Text> names;
-            auto stops = handler.RequestHandler::GetCatalogue().TransportCatalogue::GetStopsSet(); 
+            auto stops = handler.RequestHandler::GetCatalogue().TransportCatalogue::GetStopsSet();
             auto buses = handler.RequestHandler::GetCatalogue().TransportCatalogue::GetBusesToStops();
             auto catalogue = handler.RequestHandler::GetCatalogue();
             auto render = handler.RequestHandler::GetRenderer();
-            for (const auto& stop : stops) {  
+            for (const auto& stop : stops) {
                 if (buses.find(stop) != buses.end()) {
                     svg::Text base;
                     base.SetPosition(projector(catalogue.TransportCatalogue::FindStop(stop)->coordinates))
                         .SetOffset(svg::Point(render.GetStopLabelOffset()))
                         .SetFontSize(render.GetStopLabelFontSize())
-                        .SetFontFamily("Verdana"s) 
+                        .SetFontFamily("Verdana"s)
                         .SetData(catalogue.TransportCatalogue::FindStop(stop)->name);
                     svg::Text sign = base
                         .SetFillColor("black"s);
@@ -325,7 +350,7 @@ namespace transport_catalogue {
             }
             return names;
         }
-        
+
 
         json::Dict GetMap(int request_id, const RequestHandler& handler, const json::Dict& queryset) {
             if (auto it = queryset.find("render_settings"s); it == queryset.end()) {
@@ -334,7 +359,7 @@ namespace transport_catalogue {
             std::vector<geo::Coordinates> stops_on_routes = FindStopsOnRoutes(handler);
             renderer::SphereProjector projector{ stops_on_routes.begin(), stops_on_routes.end(), handler.RequestHandler::GetRenderer().MapRenderer::GetWidth(), handler.RequestHandler::GetRenderer().MapRenderer::GetHeight(), handler.RequestHandler::GetRenderer().MapRenderer::GetPadding(), };
             std::vector<svg::Polyline> routes = DrawLines(projector, handler);
-            
+
             svg::Document doc;
             for (const auto route : routes) {
                 doc.Add(route);
@@ -355,21 +380,27 @@ namespace transport_catalogue {
                 doc.Add(name);
             }
 
-            std::ostringstream ss; 
+            std::ostringstream ss;
             doc.Render(ss).rdbuf();
             std::string routes_map = ss.str();
-            return json::Dict{ {"map"s, json::Node(routes_map)}, {"request_id"s, json::Node(request_id)} };
+        //    return json::Dict{ {"map"s, json::Node(routes_map)}, {"request_id"s, json::Node(request_id)} };
+            return json::Builder{}
+                            .StartDict()
+                                .Key("map"s).Value(routes_map)
+                                .Key("request_id"s).Value(request_id)
+                            .EndDict()
+                        .Build()
+                    .AsDict();
         }
 
         void StatPrinter(std::ostream& out, const json::Dict& queryset, const RequestHandler& handler)
         {
-            
             json::Array stat_printer;
 
             for (const auto& request : queryset.at("stat_requests"s).AsArray()) {
-                auto map = request.AsMap();
+                auto map = request.AsDict();
                 std::string type = map.at("type"s).AsString();
-                int request_id = map.at("id"s).AsInt();                
+                int request_id = map.at("id"s).AsInt();
                 if (type == "Bus"s) {
                     std::string name = map.at("name"s).AsString();
                     stat_printer.push_back(GetBus(request_id, name, handler.RequestHandler::GetCatalogue()));
@@ -379,11 +410,9 @@ namespace transport_catalogue {
                     stat_printer.push_back(GetStop(request_id, name, handler.RequestHandler::GetCatalogue()));
                 }
                 else if (type == "Map"s) {
-                    
-                    stat_printer.push_back(GetMap(request_id, handler, queryset));  
+                    stat_printer.push_back(GetMap(request_id, handler, queryset));
                 }
             }
-            
             json::Print(json::Document(stat_printer), out);
         }
     }

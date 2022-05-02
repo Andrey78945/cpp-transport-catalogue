@@ -315,5 +315,4 @@ namespace svg {
 
         DrawPicture(begin(container), end(container), target);
     }
-
 }  // namespace svg
