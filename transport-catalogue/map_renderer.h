@@ -9,15 +9,10 @@
 #include <variant>
 #include <vector>
 
-/*
- * В этом файле вы можете разместить код, отвечающий за визуализацию карты маршрутов в формате SVG.
- */
-
 namespace renderer {
 
     inline const double EPSILON = 1e-6;
     inline bool IsZero(double value) { return std::abs(value) < EPSILON; }
-
 
     class SphereProjector {
     public:
@@ -73,104 +68,31 @@ namespace renderer {
 
     class MapRenderer {
     public:
-        void SetBusLabelFontSize(int bus_label_font_size) {
-            bus_label_font_size_ = bus_label_font_size;
-        }
+        void SetBusLabelFontSize(int bus_label_font_size); 
+        void SetStopLabelFontSize(int stop_label_font_size);
+        void SetWidth(double width);
+        void SetHeight(double height);
+        void SetPadding(double padding);
+        void SetLineWidth(double line_width);
+        void SetStopRadius(double stop_radius);
+        void SetUnderlayerWidth(double underlayer_width);
+        void SetStopLabelOffset(double dx, double dy);
+        void SetBusLabelOffset(double dx, double dy);
+        void SetUnderlayerColor(svg::Color underlayer_color);
+        void SetColorPalette(const std::vector<svg::Color>& color_palette);
 
-        void SetStopLabelFontSize(int stop_label_font_size) {
-            stop_label_font_size_ = stop_label_font_size;
-        }
-
-        void SetWidth(double width) {
-            width_ = width;
-        }
-
-        void SetHeight(double height) {
-            height_ = height;
-        }
-
-        void SetPadding(double padding) {
-            padding_ = padding;
-        }
-
-        void SetLineWidth(double line_width) {
-            line_width_ = line_width;
-        }
-
-        void SetStopRadius(double stop_radius) {
-            stop_radius_ = stop_radius;
-        }
-
-        void SetUnderlayerWidth(double underlayer_width) {
-            underlayer_width_ = underlayer_width;
-        }
-
-        void SetStopLabelOffset(double dx, double dy) {
-            stop_label_offset_.first = dx;
-            stop_label_offset_.second = dy;
-        }
-
-        void SetBusLabelOffset(double dx, double dy) {
-            bus_label_offset_.first = dx;
-            bus_label_offset_.second = dy;
-        }
-
-        void SetUnderlayerColor(svg::Color underlayer_color) {
-            underlayer_color_ = underlayer_color;
-        }
-
-        void SetColorPalette(const std::vector<svg::Color>& color_palette) {
-            color_palette_ = color_palette;
-        }
-
-
-        int GetBusLabelFontSize() const {
-            return bus_label_font_size_;
-        }
-
-        int GetStopLabelFontSize() const {
-            return stop_label_font_size_;
-        }
-
-        double GetWidth() const {
-            return width_;
-        }
-
-        double GetHeight() const {
-            return height_;
-        }
-
-        double GetPadding() const {
-            return padding_;
-        }
-
-        double GetLineWidth() const {
-            return line_width_;
-        }
-
-        double GetStopRadius() const {
-            return stop_radius_;
-        }
-
-        double GetUnderlayerWidth() const {
-            return underlayer_width_;
-        }
-
-        const std::pair<double, double>& GetStopLabelOffset() const {
-            return stop_label_offset_;
-        }
-
-        const std::pair<double, double>& GetBusLabelOffset() const {
-            return bus_label_offset_;
-        }
-
-        const svg::Color& GetUnderlayerColor() const {
-            return underlayer_color_;
-        }
-
-        const std::vector<svg::Color>& GetColorPalette() const {
-            return color_palette_;
-        }
+        int GetBusLabelFontSize() const;
+        int GetStopLabelFontSize() const;
+        double GetWidth() const;
+        double GetHeight() const;
+        double GetPadding() const;
+        double GetLineWidth() const;
+        double GetStopRadius() const;
+        double GetUnderlayerWidth() const;
+        const std::pair<double, double>& GetStopLabelOffset() const;
+        const std::pair<double, double>& GetBusLabelOffset() const;
+        const svg::Color& GetUnderlayerColor() const;
+        const std::vector<svg::Color>& GetColorPalette() const;
 
     private: 
         int bus_label_font_size_ = 0;
@@ -185,9 +107,5 @@ namespace renderer {
         std::pair<double, double> bus_label_offset_{ 0.0, 0.0 };
         svg::Color underlayer_color_ = "none";
         std::vector<svg::Color> color_palette_;
-
     };
-
-
-
 }

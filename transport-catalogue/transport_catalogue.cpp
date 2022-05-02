@@ -2,7 +2,6 @@
 
 namespace transport_catalogue {
 
-
     domain::Stop* TransportCatalogue::FindStop(const std::string_view& stop) {
         return stops_index_[stop];
     }

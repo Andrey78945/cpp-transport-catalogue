@@ -9,5 +9,3 @@ int main() {
     renderer::MapRenderer renderer;
     transport_catalogue::detail::ProcessQueries(std::cin, std::cout, catalogue, renderer);
 }
-
-
