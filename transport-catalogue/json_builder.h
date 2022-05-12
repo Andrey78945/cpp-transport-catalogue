@@ -9,22 +9,32 @@
 #include <string_view>
 #include <vector>
 
+
 namespace json {
     using namespace std::literals;
 
     class Builder {
-    public:
+    public:         
         class DictItemContext;
         class ArrayItemContext;
         class KeyItemContext;
         class ValueDictItemContext; 
+        
+        enum Operation {
+            StartArrayO,
+            EndArrayO,
+            StartDictO,
+            EndDictO,
+            ValueO,
+            KeyO
+        };
 
         class ItemContext {
         public:
             ItemContext(Builder& builder)
                 : builder_(builder) {}
 
-            virtual ~ItemContext() {}
+            virtual ~ItemContext() {} 
 
             Builder& GetBuilder() {
                 return builder_;
@@ -54,6 +64,7 @@ namespace json {
                 return builder_.Value(value);
             }
 
+            
         private:
             Builder& builder_;
         };
@@ -64,19 +75,19 @@ namespace json {
                 : ItemContext(builder) {}
 
             KeyItemContext Key(const std::string& key) {
-                return GetBuilder().Key(key);
+                return GetBuilder().Key(key); 
             }
 
             Builder& EndDict() {
-                return GetBuilder().EndDict();
-            }
+                return GetBuilder().EndDict(); 
+            }   
 
             Builder& Value(json::Node value) = delete;
             Builder& EndArray() = delete;
             ArrayItemContext StartArray() = delete;
             DictItemContext StartDict() = delete;
-        };
-               
+        }; 
+
         class ArrayItemContext final : public ItemContext {
         public:
             ArrayItemContext(Builder& builder)
@@ -87,7 +98,7 @@ namespace json {
                 return *this;
             }
 
-            KeyItemContext Key(const std::string& key) = delete;
+            KeyItemContext Key(const std::string& key) = delete;             
             Builder& EndDict() = delete;
         };
 
@@ -115,27 +126,28 @@ namespace json {
                 return ValueDictItemContext(GetBuilder().Value(value));
             }
 
-            KeyItemContext Key(const std::string& key) = delete;
+            KeyItemContext Key(const std::string& key) = delete;        
             Builder& EndArray() = delete;
             Builder& EndDict() = delete;
-        };
+        };        
 
         Builder(Node root) : root_(root) {}
         Builder() = default;
 
-        json::Node Build(); 
+        json::Node Build();       
         DictItemContext StartDict();
         Builder& EndDict();
-        ArrayItemContext StartArray(); 
-        Builder& EndArray(); 
-        Builder& Key(const std::string& key); 
-        Builder& Value(json::Node value); 
+        ArrayItemContext StartArray();
+        Builder& EndArray();       
+        Builder& Key(const std::string& key);
+        Builder& Value(json::Node value);
+        
 
     private:
         json::Node root_;
         std::vector<Node*> nodes_stack_;
         std::stack<char> signs_;
         std::vector<std::string> key_;
-        std::vector<std::string> operations_;
+        std::vector<Operation> operations_;
     };
 }
