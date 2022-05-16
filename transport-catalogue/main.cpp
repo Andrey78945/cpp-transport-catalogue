@@ -6,6 +6,6 @@
 
 int main() {
     transport_catalogue::TransportCatalogue catalogue;
-    renderer::MapRenderer renderer;
+    renderer::MapRenderer renderer; 
     transport_catalogue::detail::ProcessQueries(std::cin, std::cout, catalogue, renderer);
 }

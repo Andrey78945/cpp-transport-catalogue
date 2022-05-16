@@ -69,29 +69,52 @@ namespace renderer {
     class MapRenderer {
     public:
         void SetBusLabelFontSize(int bus_label_font_size); 
+
         void SetStopLabelFontSize(int stop_label_font_size);
+
         void SetWidth(double width);
+
         void SetHeight(double height);
+
         void SetPadding(double padding);
+
         void SetLineWidth(double line_width);
+
         void SetStopRadius(double stop_radius);
+
         void SetUnderlayerWidth(double underlayer_width);
+
         void SetStopLabelOffset(double dx, double dy);
+
         void SetBusLabelOffset(double dx, double dy);
+
         void SetUnderlayerColor(svg::Color underlayer_color);
+
         void SetColorPalette(const std::vector<svg::Color>& color_palette);
 
+
         int GetBusLabelFontSize() const;
+
         int GetStopLabelFontSize() const;
+
         double GetWidth() const;
+
         double GetHeight() const;
+
         double GetPadding() const;
+
         double GetLineWidth() const;
+
         double GetStopRadius() const;
+
         double GetUnderlayerWidth() const;
+
         const std::pair<double, double>& GetStopLabelOffset() const;
+
         const std::pair<double, double>& GetBusLabelOffset() const;
+
         const svg::Color& GetUnderlayerColor() const;
+
         const std::vector<svg::Color>& GetColorPalette() const;
 
     private: 
