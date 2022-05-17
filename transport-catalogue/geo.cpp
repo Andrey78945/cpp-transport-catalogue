@@ -15,4 +15,5 @@ double ComputeDistance(Coordinates from, Coordinates to) {
                 + cos(from.lat * dr) * cos(to.lat * dr) * cos(std::abs(from.lng - to.lng) * dr))
         * 6371000;
 }
+
 }  // namespace geo

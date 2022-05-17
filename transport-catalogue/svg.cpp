@@ -8,7 +8,7 @@ namespace svg {
     using namespace std::literals;
 
     void Object::Render(const RenderContext& context) const {
-        context.RenderIndent();
+        context.RenderIndent(); 
         RenderObject(context);
         context.out << std::endl;
     }
@@ -113,6 +113,7 @@ namespace svg {
         data_ = data;
         return *this;
     }
+
 
     // ---------- Document ------------------        
 

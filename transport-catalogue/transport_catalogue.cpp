@@ -2,6 +2,7 @@
 
 namespace transport_catalogue {
 
+
     domain::Stop* TransportCatalogue::FindStop(const std::string_view& stop) {
         return stops_index_[stop];
     }
@@ -11,7 +12,7 @@ namespace transport_catalogue {
     }
 
     void TransportCatalogue::AddStop(geo::Coordinates coordinates, const std::string& name) {
-        stops_.push_back(std::move(domain::Stop(coordinates, name)));
+        stops_.push_back(std::move(domain::Stop(stops_.size(), coordinates, name)));
         domain::Stop* pstop = &(stops_.back());
         std::string_view stop_view{ (*pstop).name };
         stops_index_[stop_view] = pstop;
@@ -48,7 +49,11 @@ namespace transport_catalogue {
         return  buses_index_.at(bus);
     }
 
-    std::unordered_map<std::pair<domain::Stop*, domain::Stop*>, int, TransportCatalogue::PairHash> TransportCatalogue::GetDistaces() {
+    std::unordered_map<std::pair<domain::Stop*, domain::Stop*>, int, TransportCatalogue::PairHash> TransportCatalogue::GetDistances() {
+        return distances_;
+    }
+
+    const std::unordered_map<std::pair<domain::Stop*, domain::Stop*>, int, TransportCatalogue::PairHash>& TransportCatalogue::GetDistances() const {
         return distances_;
     }
 
@@ -109,7 +114,7 @@ namespace transport_catalogue {
     int TransportCatalogue::ComputeRouteDistance(const std::vector<domain::Stop*>& stops) const
     {
         assert(stops.size() >= 2);
-        int route_data_distance = 0.0;
+        int route_data_distance = 0;
         for (size_t i = 1; i < stops.size(); ++i) {
             auto it = distances_.find({ stops[i - 1], stops[i] });
             if (it == distances_.end()) {
