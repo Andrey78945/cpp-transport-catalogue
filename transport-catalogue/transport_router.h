@@ -1,10 +1,10 @@
 #pragma once
 
+#include "json.h"
 #include "router.h"
-
+#include "transport_catalogue.h"
  
-namespace router {
-    
+namespace router {    
 
 class TransportRouter {
 
@@ -17,6 +17,9 @@ public:
     void SetVelocity(double velocity);
     
     int GetWaitTime() const;
+
+    void FillTransportRouter(const json::Dict& queryset, const transport_catalogue::TransportCatalogue& catalogue, 
+        graph::DirectedWeightedGraph<double>& graph);
     
 private:
     int wait_time_;

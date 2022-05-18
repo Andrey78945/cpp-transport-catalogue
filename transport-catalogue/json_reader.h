@@ -28,8 +28,6 @@ namespace transport_catalogue {
 
         void FillMapRenderer(const json::Dict& queryset, renderer::MapRenderer& renderer);       
         
-        void FillTransportRouter(const json::Dict& queryset, const TransportCatalogue& catalogue, graph::DirectedWeightedGraph<double>& graph, router::TransportRouter& router);
-
         void InputStops(const json::Dict& queryset, TransportCatalogue& catalogue);
 
         void InputBuses(const json::Dict& queryset, TransportCatalogue& catalogue);

@@ -1,14 +1,5 @@
 #include "json_reader.h"
 
-/* 
-* Хотелось бы получить пару советов:
-* Не стоит ли попробовать перенести StatPrinter(output, queryset, handler) и нахождение ответов на запросы в * Request_handler?
-* Как лучше объдинить Router и TransportRouter? Через публичное наследование или о каком-нибудь паттерне 
-* почитать?
-* Нужен ли класс json_reader?
-* Спасибо
-*/
-
 namespace transport_catalogue {
     using namespace std::literals;
     
@@ -26,7 +17,7 @@ namespace transport_catalogue {
 
             router::TransportRouter router;
 
-            FillTransportRouter(queryset, catalogue, transport_graph, router);      
+            router.TransportRouter::FillTransportRouter(queryset, catalogue, transport_graph);
 
             graph::Router transport_router(transport_graph);
 
@@ -112,68 +103,6 @@ namespace transport_catalogue {
                     }
                     renderer.SetColorPalette(palette);
                 }
-            }
-        }
-
-        void FillTransportRouter(const json::Dict& queryset,  const TransportCatalogue& catalogue, graph::DirectedWeightedGraph<double>& graph, router::TransportRouter& router) {
-            if (auto it = queryset.find("routing_settings"s); it == queryset.end()) {
-                return;
-            }
-            int bus_wait_time = 0;
-            double velocity = 0.0;
-
-            for (const auto& [key, value] : queryset.at("routing_settings"s).AsDict()) {
-                if (key == "bus_velocity"s) {
-                    velocity = value.AsDouble();
-                    router.SetVelocity(velocity);
-                }
-                else if (key == "bus_wait_time"s) {
-                    bus_wait_time = value.AsInt();
-                    router.SetWaitTime(bus_wait_time);
-                }
-            }
-
-
-            for (const auto& bus : catalogue.TransportCatalogue::GetBuses()) {
-                const auto& stops = bus.stops;
-                size_t span = 0;
-                double weight = bus_wait_time * 1.0;
-                if (stops.size() > 1) {                    
-                    for (size_t i = 0; i + 1 < stops.size(); ++i) {
-                        span = 1;
-                        weight = bus_wait_time * 1.0;
-                        for (size_t j = i + 1; j < stops.size(); ++j) {
-
-                            if (stops[i] != stops[j]) {
-                                auto it = catalogue.TransportCatalogue::GetDistances().find({ stops[j - 1], stops[j] });
-                                if (it == catalogue.TransportCatalogue::GetDistances().end()) {
-                                    it = catalogue.TransportCatalogue::GetDistances().find({ stops[j], stops[j - 1] });
-                                }
-                                weight += it->second / 1000.0 / velocity * 60.0;
-                                graph.AddEdge({ stops[i]->id, stops[j]->id, span, bus.name, weight });
-                                ++span;
-                            }                            
-                        }
-                    }
-                    if (!bus.is_roundtrip) {                        
-                        for (size_t i = stops.size() - 1u; i > 0 ; --i) {
-                            weight = bus_wait_time * 1.0;
-                            span = 1;
-                            for (size_t j = i;  j > 0; --j) {
-
-                                if (stops[i] != stops[j - 1]) {
-                                    auto it = catalogue.TransportCatalogue::GetDistances().find({ stops[j], stops[j - 1] });
-                                    if (it == catalogue.TransportCatalogue::GetDistances().end()) {
-                                        it = catalogue.TransportCatalogue::GetDistances().find({ stops[j - 1], stops[j] });
-                                    }
-                                    weight += it->second / 1000.0 / velocity * 60.0;
-                                    graph.AddEdge({ stops[i]->id, stops[j - 1]->id, span, bus.name, weight });
-                                    ++span;
-                                }
-                            }
-                        }
-                    }
-                }                
             }
         }
 
