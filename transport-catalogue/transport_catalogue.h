@@ -77,6 +77,8 @@ namespace transport_catalogue {
 
         int ComputeRouteDistance(const std::vector<domain::Stop*>& stops) const;
 
+        std::vector<geo::Coordinates> FindStopsOnRoutes() const;
+
     private:
         std::unordered_map<std::string_view, std::vector<domain::Bus*>> buses_to_stops_;
         std::unordered_map<std::string_view, std::vector<domain::Stop*>> stops_to_buses_;

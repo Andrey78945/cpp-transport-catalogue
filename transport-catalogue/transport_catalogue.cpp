@@ -124,4 +124,14 @@ namespace transport_catalogue {
         }
         return route_data_distance;
     }
+
+    std::vector<geo::Coordinates> TransportCatalogue::FindStopsOnRoutes() const {
+        std::vector<geo::Coordinates> stops_on_routes;
+        for (const auto& bus : buses_) {
+            for (const auto& stop : bus.stops) {
+                stops_on_routes.push_back((*stop).coordinates);
+            }
+        }
+        return stops_on_routes;
+    }
 }

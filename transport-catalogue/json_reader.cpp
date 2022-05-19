@@ -222,19 +222,6 @@ namespace transport_catalogue {
                 .AsDict();
         }
 
-        std::vector<geo::Coordinates> FindStopsOnRoutes(const RequestHandler& handler) {
-            std::vector<geo::Coordinates> stops_on_routes;
-            for (const auto& bus : handler.RequestHandler::GetCatalogue().GetBuses()) {
-                for (const auto& stop : bus.stops) {
-                    stops_on_routes.push_back((*stop).coordinates);
-                }
-            }
-            return stops_on_routes;
-        }
-
-        
-
-
         json::Dict GetMap(int request_id, const RequestHandler& handler, const json::Dict& queryset) {
             if (auto it = queryset.find("render_settings"s); it == queryset.end()) {
                 return GetNotFoundInfo(request_id);
@@ -244,7 +231,7 @@ namespace transport_catalogue {
 
             const renderer::MapRenderer& renderer = handler.RequestHandler::GetRenderer();
             const TransportCatalogue& catalogue = handler.RequestHandler::GetCatalogue();
-            std::vector<geo::Coordinates> stops_on_routes = FindStopsOnRoutes(handler);
+            std::vector<geo::Coordinates> stops_on_routes = catalogue.TransportCatalogue::FindStopsOnRoutes();
 
             renderer.FillDocument(doc, stops_on_routes, catalogue);
 

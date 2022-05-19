@@ -3,8 +3,6 @@
 #include "json_builder.h"
 #include "map_renderer.h"
 #include "request_handler.h"
-//#include "transport_catalogue.h"
-
 
 #include <cstdlib> 
 #include <deque> 
@@ -38,12 +36,9 @@ namespace transport_catalogue {
 
         json::Dict GetStop(int request_id, const std::string& stop, TransportCatalogue& catalogue);
 
-        std::vector<geo::Coordinates> FindStopsOnRoutes(const RequestHandler& handler);
-
         json::Dict GetMap(int request_id, const RequestHandler& handler, const json::Dict& queryset);
 
         json::Dict GetNotFoundInfo(int request_id);
-
         
         void StatPrinter(std::ostream& out, const json::Dict& queryset, const RequestHandler& handler);
 
