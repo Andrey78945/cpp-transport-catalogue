@@ -3,6 +3,7 @@
 #include "domain.h"
 #include "geo.h"
 #include "svg.h"
+#include "transport_catalogue.h"
 
 #include <algorithm>
 #include <optional>
@@ -116,6 +117,18 @@ namespace renderer {
         const svg::Color& GetUnderlayerColor() const;
 
         const std::vector<svg::Color>& GetColorPalette() const;
+
+        std::vector<svg::Polyline> DrawLines(const renderer::SphereProjector& projector, const transport_catalogue::TransportCatalogue& catalogue) const;
+
+        std::vector<svg::Text> DrawRouteNames(const renderer::SphereProjector& projector, const transport_catalogue::TransportCatalogue& catalogue) const;
+
+        std::vector<svg::Circle> DrawStopSymbols(const renderer::SphereProjector& projector, const transport_catalogue::TransportCatalogue& catalogue) const;
+
+        std::vector<svg::Text> DrawStopNames(const renderer::SphereProjector& projector, const transport_catalogue::TransportCatalogue& catalogue) const;
+        
+        void FillDocument(svg::Document& doc, const std::vector<geo::Coordinates>& stops_on_routes, 
+            const transport_catalogue::TransportCatalogue& catalogue) const;
+
 
     private: 
         int bus_label_font_size_ = 0;

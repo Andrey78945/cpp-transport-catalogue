@@ -3,7 +3,7 @@
 #include "json_builder.h"
 #include "map_renderer.h"
 #include "request_handler.h"
-#include "transport_catalogue.h"
+//#include "transport_catalogue.h"
 
 
 #include <cstdlib> 
@@ -44,12 +44,7 @@ namespace transport_catalogue {
 
         json::Dict GetNotFoundInfo(int request_id);
 
-        std::vector<svg::Polyline> DrawLines(const renderer::SphereProjector& projector, const RequestHandler& handler);
-
-        std::vector<svg::Text> DrawRouteNames(const renderer::SphereProjector& projector, const RequestHandler& handler);
-
-        std::vector<svg::Circle> DrawStopSymbols(const renderer::SphereProjector & projector, const RequestHandler & handler);
-
+        
         void StatPrinter(std::ostream& out, const json::Dict& queryset, const RequestHandler& handler);
 
         svg::Color SetColor(const json::Node& value);

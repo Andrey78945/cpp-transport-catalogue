@@ -232,159 +232,21 @@ namespace transport_catalogue {
             return stops_on_routes;
         }
 
-        std::vector<svg::Polyline> DrawLines(const renderer::SphereProjector& projector, const RequestHandler& handler) {
-            std::vector<svg::Polyline> result;
-
-            auto& catalogue = handler.RequestHandler::GetCatalogue();
-            auto& render = handler.RequestHandler::GetRenderer();
-
-            size_t route_color_index = 0u;
-            size_t color_palette_size = render.GetColorPalette().size();
-            auto& buses = (catalogue.TransportCatalogue::GetBusesSet());
-            for (const auto& bus : buses) {
-                auto& stops_in_map = catalogue.TransportCatalogue::GetStopsToBuses();
-                if (stops_in_map.find(bus) != stops_in_map.end()) {
-                    auto& stops = catalogue.TransportCatalogue::FindBus(bus)->stops;
-                    if (!stops.empty()) {
-                        svg::Polyline polyline;
-                        polyline.SetFillColor(svg::NoneColor)
-                            .SetStrokeWidth(render.GetLineWidth())
-                            .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
-                            .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
-                        for (const auto& stop : stops) {
-                            polyline.AddPoint(projector((*stop).coordinates));
-                        }
-
-                        auto b = catalogue.TransportCatalogue::FindBus(bus);
-                        if (!(b->is_roundtrip) && stops.size() > 1u) {
-                            for (auto i = 1u; i < stops.size(); ++i) {
-                                polyline.AddPoint(projector((*(stops[stops.size() - i - 1])).coordinates));
-                            }
-                        }
-                        polyline.SetStrokeColor(render.GetColorPalette()[route_color_index]);
-                        route_color_index = (route_color_index < color_palette_size - 1) ? route_color_index + 1 : 0u;
-                        result.push_back(std::move(polyline));
-                    }
-                }
-            }
-            return result;
-        }
-
-        std::vector<svg::Text> DrawRouteNames(const renderer::SphereProjector& projector, const RequestHandler& handler) {
-            std::vector<svg::Text> names;
-            auto& catalogue = handler.RequestHandler::GetCatalogue();
-            auto& render = handler.RequestHandler::GetRenderer();
-            size_t route_color_index = 0u;
-            size_t color_palette_size = render.GetColorPalette().size();
-            for (const auto& bus : catalogue.TransportCatalogue::GetBusesSet()) {
-                auto& stops = catalogue.TransportCatalogue::FindBus(bus)->stops;
-                if (!stops.empty()) {
-                    svg::Text base;
-                    base.SetPosition(projector((*(stops[0])).coordinates))
-                        .SetOffset(svg::Point(render.GetBusLabelOffset()))
-                        .SetFontSize(render.GetBusLabelFontSize())
-                        .SetFontFamily("Verdana"s)
-                        .SetFontWeight("bold"s)
-                        .SetData(catalogue.TransportCatalogue::FindBus(bus)->name);
-                    svg::Text sign = base
-                        .SetFillColor(render.GetColorPalette()[route_color_index]);
-                    svg::Text underlay = base
-                        .SetFillColor(render.GetUnderlayerColor())
-                        .SetStrokeColor(render.GetUnderlayerColor())
-                        .SetStrokeWidth(render.GetUnderlayerWidth())
-                        .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
-                        .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
-                    names.push_back(underlay);
-                    names.push_back(sign);
-
-                    if (!(catalogue.TransportCatalogue::FindBus(bus)->is_roundtrip) && stops.size() > 1u && stops[0]->name != stops[stops.size() - 1]->name) {
-                        underlay.SetPosition(projector((*(stops[stops.size() - 1])).coordinates));
-                        sign.SetPosition(projector((*(stops[stops.size() - 1])).coordinates));
-                        names.push_back(std::move(underlay));
-                        names.push_back(std::move(sign));
-                    }
-                    route_color_index = (route_color_index < color_palette_size - 1) ? route_color_index + 1 : 0u;
-                }
-            }
-            return names;
-        }
-
-        std::vector<svg::Circle> DrawStopSymbols(const renderer::SphereProjector& projector, const RequestHandler& handler) {
-            std::vector<svg::Circle> symbols;
-            auto& catalogue = handler.RequestHandler::GetCatalogue();
-            auto& render = handler.RequestHandler::GetRenderer();
-            auto& stops = catalogue.TransportCatalogue::GetStopsSet();
-
-            for (const auto& stop : stops) {
-                auto& buses = catalogue.TransportCatalogue::GetBusesToStops();
-                if (buses.find(stop) != buses.end()) {
-                    svg::Circle circle;
-                    circle.SetCenter(projector(catalogue.TransportCatalogue::FindStop(stop)->coordinates))
-                        .SetFillColor("white"s)
-                        .SetRadius(render.GetStopRadius());
-                    symbols.push_back(circle);
-                }
-            }
-            return symbols;
-        }
-
-        std::vector<svg::Text> DrawStopNames(const renderer::SphereProjector& projector, const RequestHandler& handler) {
-            std::vector<svg::Text> names;
-            auto& stops = handler.RequestHandler::GetCatalogue().TransportCatalogue::GetStopsSet();
-            auto& buses = handler.RequestHandler::GetCatalogue().TransportCatalogue::GetBusesToStops();
-            auto& catalogue = handler.RequestHandler::GetCatalogue();
-            auto& render = handler.RequestHandler::GetRenderer();
-            for (const auto& stop : stops) {
-                if (buses.find(stop) != buses.end()) {
-                    svg::Text base;
-                    base.SetPosition(projector(catalogue.TransportCatalogue::FindStop(stop)->coordinates))
-                        .SetOffset(svg::Point(render.GetStopLabelOffset()))
-                        .SetFontSize(render.GetStopLabelFontSize())
-                        .SetFontFamily("Verdana"s)
-                        .SetData(catalogue.TransportCatalogue::FindStop(stop)->name);
-                    svg::Text sign = base
-                        .SetFillColor("black"s);
-                    svg::Text underlay = base
-                        .SetFillColor(render.GetUnderlayerColor())
-                        .SetStrokeColor(render.GetUnderlayerColor())
-                        .SetStrokeWidth(render.GetUnderlayerWidth())
-                        .SetStrokeLineCap(svg::StrokeLineCap::ROUND)
-                        .SetStrokeLineJoin(svg::StrokeLineJoin::ROUND);
-                    names.push_back(underlay);
-                    names.push_back(sign);
-                }
-            }
-            return names;
-        }
+        
 
 
         json::Dict GetMap(int request_id, const RequestHandler& handler, const json::Dict& queryset) {
             if (auto it = queryset.find("render_settings"s); it == queryset.end()) {
                 return GetNotFoundInfo(request_id);
             }
-            std::vector<geo::Coordinates> stops_on_routes = FindStopsOnRoutes(handler);
-            renderer::SphereProjector projector{ stops_on_routes.begin(), stops_on_routes.end(), handler.RequestHandler::GetRenderer().MapRenderer::GetWidth(), handler.RequestHandler::GetRenderer().MapRenderer::GetHeight(), handler.RequestHandler::GetRenderer().MapRenderer::GetPadding(), };
-            std::vector<svg::Polyline> routes = DrawLines(projector, handler);
-
+            
             svg::Document doc;
-            for (const auto& route : routes) {
-                doc.Add(route);
-            }
 
-            std::vector<svg::Text> route_names = DrawRouteNames(projector, handler);
-            for (const auto& name : route_names) {
-                doc.Add(name);
-            }
+            const renderer::MapRenderer& renderer = handler.RequestHandler::GetRenderer();
+            const TransportCatalogue& catalogue = handler.RequestHandler::GetCatalogue();
+            std::vector<geo::Coordinates> stops_on_routes = FindStopsOnRoutes(handler);
 
-            std::vector<svg::Circle> symbols = DrawStopSymbols(projector, handler);
-            for (const auto& symbol : symbols) {
-                doc.Add(symbol);
-            }
-
-            std::vector<svg::Text> stop_names = DrawStopNames(projector, handler);
-            for (const auto& name : stop_names) {
-                doc.Add(name);
-            }
+            renderer.FillDocument(doc, stops_on_routes, catalogue);
 
             std::ostringstream ss;
             doc.Render(ss).rdbuf();
